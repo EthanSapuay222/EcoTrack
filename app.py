@@ -1,5 +1,3 @@
-
-
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import sqlite3
@@ -37,25 +35,18 @@ def index():
     """Serve the main dashboard page"""
     return render_template('index.html')
 
-@app.route('/api/stats/overview')
+# --------------------------
+# Overview
+# --------------------------
+@app.route('/api/overview')
 def get_overview_stats():
-    """Get overall statistics"""
     conn = get_db_connection()
     
-    # Total reports
     total = conn.execute('SELECT COUNT(*) as count FROM reports').fetchone()
-    
-    # Reports by status
-    status_counts = conn.execute('''
-        SELECT status, COUNT(*) as count 
-        FROM reports 
-        GROUP BY status
-    ''').fetchall()
-    
-    # Reports by severity
+    status_counts = conn.execute('SELECT status, COUNT(*) as count FROM reports GROUP BY status').fetchall()
     severity_counts = conn.execute('''
-        SELECT severity, COUNT(*) as count 
-        FROM reports 
+        SELECT severity, COUNT(*) as count
+        FROM reports
         GROUP BY severity
         ORDER BY CASE severity
             WHEN 'critical' THEN 1
@@ -65,17 +56,25 @@ def get_overview_stats():
         END
     ''').fetchall()
     
+    # Convert status counts to dict for easy JS access
+    status_dict = {row['status']: row['count'] for row in status_counts}
+    
     conn.close()
     
     return jsonify({
         'total_reports': total['count'],
+        'pending_reports': status_dict.get('pending', 0),
+        'resolved_reports': status_dict.get('resolved', 0),
+        'critical_reports': status_dict.get('critical', 0),
         'by_status': [dict_from_row(row) for row in status_counts],
         'by_severity': [dict_from_row(row) for row in severity_counts]
     })
 
-@app.route('/api/stats/categories')
+# --------------------------
+# Categories
+# --------------------------
+@app.route('/api/categories')
 def get_category_stats():
-    """Get reports by category"""
     conn = get_db_connection()
     
     results = conn.execute('''
@@ -87,33 +86,30 @@ def get_category_stats():
     ''').fetchall()
     
     conn.close()
-    
     return jsonify([dict_from_row(row) for row in results])
 
-@app.route('/api/stats/trends')
+# --------------------------
+# Trends
+# --------------------------
+@app.route('/api/trends')
 def get_trend_stats():
-    """Get monthly trends for the last 12 months"""
     conn = get_db_connection()
-    
     results = conn.execute('''
-        SELECT 
-            strftime('%Y-%m', created_at) as month,
-            COUNT(*) as count
+        SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as count
         FROM reports
         WHERE created_at >= date('now', '-12 months')
         GROUP BY strftime('%Y-%m', created_at)
         ORDER BY month
     ''').fetchall()
-    
     conn.close()
-    
     return jsonify([dict_from_row(row) for row in results])
 
-@app.route('/api/stats/locations')
+# --------------------------
+# Locations
+# --------------------------
+@app.route('/api/locations')
 def get_location_stats():
-    """Get top reported locations"""
     conn = get_db_connection()
-    
     results = conn.execute('''
         SELECT l.name, l.city, l.region, COUNT(r.id) as count
         FROM locations l
@@ -123,81 +119,75 @@ def get_location_stats():
         ORDER BY count DESC
         LIMIT 10
     ''').fetchall()
-    
     conn.close()
-    
     return jsonify([dict_from_row(row) for row in results])
 
-@app.route('/api/stats/recent')
-def get_recent_reports():
-    """Get recent reports"""
-    limit = request.args.get('limit', 10, type=int)
-    
+# --------------------------
+# Severity
+# --------------------------
+@app.route('/api/severity')
+def get_severity_stats():
     conn = get_db_connection()
-    
+    results = conn.execute('''
+        SELECT severity, COUNT(*) as count
+        FROM reports
+        GROUP BY severity
+        ORDER BY CASE severity
+            WHEN 'critical' THEN 1
+            WHEN 'high' THEN 2
+            WHEN 'medium' THEN 3
+            WHEN 'low' THEN 4
+        END
+    ''').fetchall()
+    conn.close()
+    return jsonify([dict_from_row(row) for row in results])
+
+# --------------------------
+# Milestones
+# --------------------------
+@app.route('/api/milestones')
+def get_milestones():
+    conn = get_db_connection()
     results = conn.execute('''
         SELECT 
-            r.id, r.title, r.description, r.severity, r.status,
-            r.created_at,
-            c.name as category_name, c.icon as category_icon,
-            l.name as location_name, l.city
+            title, description, target_count, current_count,
+            achieved,
+            ROUND((CAST(current_count AS FLOAT) / target_count) * 100, 2) as progress_percentage
+        FROM milestones
+        ORDER BY progress_percentage DESC
+    ''').fetchall()
+    conn.close()
+    return jsonify([dict_from_row(row) for row in results])
+
+# --------------------------
+# Reports
+# --------------------------
+@app.route('/api/reports')
+def get_reports():
+    limit = request.args.get('limit', 10, type=int)
+    conn = get_db_connection()
+    results = conn.execute('''
+        SELECT 
+            r.id, r.title,
+            c.name AS category,
+            l.name AS location,
+            r.severity, r.status, r.created_at
         FROM reports r
         JOIN categories c ON r.category_id = c.id
         LEFT JOIN locations l ON r.location_id = l.id
         ORDER BY r.created_at DESC
         LIMIT ?
     ''', (limit,)).fetchall()
-    
     conn.close()
-    
-    return jsonify([dict_from_row(row) for row in results])
-
-@app.route('/api/stats/milestones')
-def get_milestones():
-    """Get progress milestones"""
-    conn = get_db_connection()
-    
-    results = conn.execute('''
-        SELECT 
-            title, description, target_count, current_count,
-            milestone_type, achieved,
-            ROUND((CAST(current_count AS FLOAT) / target_count) * 100, 2) as progress_percentage
-        FROM milestones
-        ORDER BY progress_percentage DESC
-    ''').fetchall()
-    
-    conn.close()
-    
-    return jsonify([dict_from_row(row) for row in results])
-
-@app.route('/api/species')
-def get_species_stats():
-    """Get species sighting statistics"""
-    conn = get_db_connection()
-    
-    results = conn.execute('''
-        SELECT 
-            s.common_name, s.scientific_name, s.conservation_status,
-            COUNT(ws.id) as sighting_count
-        FROM species s
-        LEFT JOIN wildlife_sightings ws ON s.id = ws.species_id
-        GROUP BY s.id
-        ORDER BY sighting_count DESC
-    ''').fetchall()
-    
-    conn.close()
-    
     return jsonify([dict_from_row(row) for row in results])
 
 # ============================================
-# CRUD OPERATIONS (Optional - for adding reports)
+# CRUD OPERATIONS
 # ============================================
 
 @app.route('/api/reports', methods=['POST'])
 def create_report():
-    """Create a new report"""
     data = request.json
-    
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -221,9 +211,7 @@ def create_report():
 
 @app.route('/api/reports/<int:report_id>', methods=['PUT'])
 def update_report(report_id):
-    """Update an existing report"""
     data = request.json
-    
     conn = get_db_connection()
     
     conn.execute('''
@@ -240,29 +228,22 @@ def update_report(report_id):
 # ============================================
 # RUN APPLICATION
 # ============================================
-
 if __name__ == '__main__':
-    # Check if database exists
     if not os.path.exists(DATABASE):
         print("❌ ERROR: Database not found!")
         print("📝 Please run: python database.py")
-        print("   This will create and populate the database.")
         exit(1)
     
-    # Get port from environment (for Railway) or use 5000
     port = int(os.environ.get('PORT', 5000))
     host = os.environ.get('HOST', '0.0.0.0')
     debug = os.environ.get('DEBUG', 'False') == 'True'
     
-    print("=" * 60)
+    print("="*60)
     print("🚀 Environmental Tracker - Starting Server")
-    print("=" * 60)
+    print("="*60)
     print(f"📊 Database: {DATABASE}")
     print(f"🌐 URL: http://localhost:{port}")
     print(f"🔧 Debug mode: {debug}")
-    print("=" * 60)
-    print()
-    print("Press CTRL+C to stop the server")
-    print()
+    print("="*60)
     
     app.run(host=host, port=port, debug=debug)
