@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environmental Tracker</title>
+    
+    <!-- Link to CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    
+    <!-- HEADER SECTION -->
+    <header class="header">
+        <div class="container">
+            <h1>🌍 Environmental Awareness Tracker</h1>
+            <p>Collective Community Contributions Toward Environmental Goals</p>
+        </div>
+    </header>
+    
+    <!-- SUMMARY CARDS SECTION -->
+    <section class="summary-section">
+        <div class="container">
+            <div class="summary-grid">
+                
+                <!-- Card 1: Total Reports -->
+                <div class="summary-card card-green">
+                    <div class="card-icon">📊</div>
+                    <div class="card-content">
+                        <h3>Total Reports</h3>
+                        <p class="card-number" id="totalReports">0</p>
+                    </div>
+                </div>
+                
+                <!-- Card 2: Pending -->
+                <div class="summary-card card-blue">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-content">
+                        <h3>Pending Issues</h3>
+                        <p class="card-number" id="pendingReports">0</p>
+                    </div>
+                </div>
+                
+                <!-- Card 3: Resolved -->
+                <div class="summary-card card-purple">
+                    <div class="card-icon">✅</div>
+                    <div class="card-content">
+                        <h3>Resolved</h3>
+                        <p class="card-number" id="resolvedReports">0</p>
+                    </div>
+                </div>
+                
+                <!-- Card 4: Critical -->
+                <div class="summary-card card-orange">
+                    <div class="card-icon">🔥</div>
+                    <div class="card-content">
+                        <h3>Critical Issues</h3>
+                        <p class="card-number" id="criticalReports">0</p>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+    
+    <!-- CHARTS SECTION -->
+    <section class="charts-section">
+        <div class="container">
+            <div class="charts-grid">
+                
+                <!-- Chart 1: Categories -->
+                <div class="chart-container">
+                    <h2>📊 Reports by Category</h2>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                
+                <!-- Chart 2: Trends -->
+                <div class="chart-container">
+                    <h2>📈 Monthly Trends</h2>
+                    <canvas id="trendsChart"></canvas>
+                </div>
+                
+                <!-- Chart 3: Locations -->
+                <div class="chart-container">
+                    <h2>📍 Top Locations</h2>
+                    <canvas id="locationsChart"></canvas>
+                </div>
+                
+                <!-- Chart 4: Severity -->
+                <div class="chart-container">
+                    <h2>⚡ Severity Levels</h2>
+                    <canvas id="severityChart"></canvas>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+    
+    <!-- MILESTONES SECTION -->
+    <section class="milestones-section">
+        <div class="container">
+            <h2>🎯 Progress Milestones</h2>
+            <div id="milestonesContainer" class="milestones-grid">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- RECENT REPORTS TABLE -->
+    <section class="reports-section">
+        <div class="container">
+            <h2>📋 Recent Reports</h2>
+            <div class="table-container">
+                <table id="reportsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Location</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportsTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+    
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Environmental Tracker | Making a difference 🌱</p>
+        </div>
+    </footer>
+    
+    <!-- Link to JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+</body>
+</html>
