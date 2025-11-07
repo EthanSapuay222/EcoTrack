@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Environmental Tracker</title>
-    
+
     <!-- Link to CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -20,13 +20,11 @@
             <p>Collective Community Contributions Toward Environmental Goals</p>
         </div>
     </header>
-    
+
     <!-- SUMMARY CARDS SECTION -->
     <section class="summary-section">
         <div class="container">
             <div class="summary-grid">
-                
-                <!-- Card 1: Total Reports -->
                 <div class="summary-card card-green">
                     <div class="card-icon">📊</div>
                     <div class="card-content">
@@ -34,8 +32,6 @@
                         <p class="card-number" id="totalReports">0</p>
                     </div>
                 </div>
-                
-                <!-- Card 2: Pending -->
                 <div class="summary-card card-blue">
                     <div class="card-icon">⚠️</div>
                     <div class="card-content">
@@ -43,8 +39,6 @@
                         <p class="card-number" id="pendingReports">0</p>
                     </div>
                 </div>
-                
-                <!-- Card 3: Resolved -->
                 <div class="summary-card card-purple">
                     <div class="card-icon">✅</div>
                     <div class="card-content">
@@ -52,8 +46,6 @@
                         <p class="card-number" id="resolvedReports">0</p>
                     </div>
                 </div>
-                
-                <!-- Card 4: Critical -->
                 <div class="summary-card card-orange">
                     <div class="card-icon">🔥</div>
                     <div class="card-content">
@@ -61,44 +53,34 @@
                         <p class="card-number" id="criticalReports">0</p>
                     </div>
                 </div>
-                
             </div>
         </div>
     </section>
-    
+
     <!-- CHARTS SECTION -->
     <section class="charts-section">
         <div class="container">
             <div class="charts-grid">
-                
-                <!-- Chart 1: Categories -->
                 <div class="chart-container">
                     <h2>📊 Reports by Category</h2>
                     <canvas id="categoryChart"></canvas>
                 </div>
-                
-                <!-- Chart 2: Trends -->
                 <div class="chart-container">
                     <h2>📈 Monthly Trends</h2>
                     <canvas id="trendsChart"></canvas>
                 </div>
-                
-                <!-- Chart 3: Locations -->
                 <div class="chart-container">
                     <h2>📍 Top Locations</h2>
                     <canvas id="locationsChart"></canvas>
                 </div>
-                
-                <!-- Chart 4: Severity -->
                 <div class="chart-container">
                     <h2>⚡ Severity Levels</h2>
                     <canvas id="severityChart"></canvas>
                 </div>
-                
             </div>
         </div>
     </section>
-    
+
     <!-- MILESTONES SECTION -->
     <section class="milestones-section">
         <div class="container">
@@ -108,7 +90,65 @@
             </div>
         </div>
     </section>
-    
+
+    <!-- REPORT SUBMISSION FORM SECTION -->
+    <section class="form-section">
+        <div class="container">
+            <h2>📝 Submit Environmental Report</h2>
+            <p class="form-description">Help us track environmental issues in your area</p>
+            <div class="form-container">
+                <form id="reportForm">
+                    <div class="form-group">
+                        <label for="reportTitle">Report Title *</label>
+                        <input type="text" id="reportTitle" name="title" placeholder="e.g., Plastic waste on beach" required maxlength="200">
+                    </div>
+                    <div class="form-group">
+                        <label for="reportDescription">Description *</label>
+                        <textarea id="reportDescription" name="description" placeholder="Provide details about what you observed..." required rows="4" maxlength="1000"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportCategory">Category *</label>
+                        <select id="reportCategory" name="category_id" required>
+                            <option value="">-- Select Category --</option>
+                            <option value="1">🏭 Pollution</option>
+                            <option value="2">🦋 Wildlife</option>
+                            <option value="3">🗑️ Waste Management</option>
+                            <option value="4">🌳 Deforestation</option>
+                            <option value="5">💧 Water Bodies</option>
+                            <option value="6">🌡️ Climate Action</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportLocation">Location (Optional)</label>
+                        <select id="reportLocation" name="location_id">
+                            <option value="">-- Select Location --</option>
+                            <option value="1">Central Park</option>
+                            <option value="2">Coastal Beach</option>
+                            <option value="3">Forest Reserve</option>
+                            <option value="4">Downtown River</option>
+                            <option value="5">Mountain Trail</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportSeverity">Severity *</label>
+                        <select id="reportSeverity" name="severity" required>
+                            <option value="">-- Select Severity --</option>
+                            <option value="low">🔵 Low - Minor observation</option>
+                            <option value="medium">🟡 Medium - Moderate concern</option>
+                            <option value="high">🟠 High - Serious issue</option>
+                            <option value="critical">🔴 Critical - Urgent action needed</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">📤 Submit Report</button>
+                        <button type="reset" class="btn-reset">🔄 Clear Form</button>
+                    </div>
+                    <div id="formMessage" class="form-message" style="display: none;"></div>
+                </form>
+            </div>
+        </div>
+    </section>
+
     <!-- RECENT REPORTS TABLE -->
     <section class="reports-section">
         <div class="container">
@@ -133,16 +173,15 @@
             </div>
         </div>
     </section>
-    
+
     <!-- FOOTER -->
     <footer class="footer">
         <div class="container">
             <p>&copy; 2025 Environmental Tracker | Making a difference 🌱</p>
         </div>
     </footer>
-    
+
     <!-- Link to JavaScript -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    
 </body>
 </html>
